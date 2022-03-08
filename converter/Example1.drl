@@ -1,0 +1,22 @@
+
+package org.drools.examples.converter
+
+dialect "mvel"
+
+rule "DisplayChoise"
+salience 2
+    when
+        $currency : Currency($currency.isChosen == true)
+    then
+        Currency chosenOne = $currency;
+        System.out.println("You chose to convert " + $currency.getAmount + $currency.getNameOfCurrency +" which would be worth the fallowing: ");
+end
+
+rule "ShowRate"
+    when 
+        $currency : Currency($currency.isChosen == false)
+        $chosen: Currency($chosen.isChosen == true)
+    then
+        double getRate = ($chosen.getValueInDollars/$currency.getValueInDollars)*$chosen.getAmount;
+        System.out.println($currency.getNameOfCurrency + " - " +  String.format("%.3f", getRate) );
+    end
