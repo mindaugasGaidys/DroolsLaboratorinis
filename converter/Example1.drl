@@ -1,22 +1,35 @@
 
 package org.drools.examples.converter
-
 dialect "mvel"
+
+declare alreadyFired
+end
 
 rule "DisplayChoise"
 salience 2
     when
         $currency : Currency($currency.isChosen == true)
+        not alreadyFired()
     then
-        Currency chosenOne = $currency;
-        System.out.println("You chose to convert " + $currency.getAmount + $currency.getNameOfCurrency +" which would be worth the fallowing: ");
+        System.out.println("You chose to convert " + $currency.getAmount +" " + $currency.getNameOfCurrency +" which would be worth the fallowing: ");
 end
 
 rule "ShowRate"
     when 
         $currency : Currency($currency.isChosen == false)
-        $chosen: Currency($chosen.isChosen == true)
+        $chosen: Currency($chosen.isChosen == true &&  $chosen.isNotValidAmount == false)
+        not alreadyFired()
     then
         double getRate = ($chosen.getValueInDollars/$currency.getValueInDollars)*$chosen.getAmount;
         System.out.println($currency.getNameOfCurrency + " - " +  String.format("%.3f", getRate) );
+    end
+    
+rule "CheackIfAmountPossitive"
+salience 5
+    when 
+        $currency :Currency($currency.amount<0)
+    then
+        System.out.println("Money cant be in negative amount");
+        $currency.setAmount(0);
+        insert(new alreadyFired());
     end
